@@ -1,6 +1,6 @@
 <?php
 
-namespace S3_Uploads;
+namespace R2_UPLOADS;
 
 use Imagick;
 use WP_Error;

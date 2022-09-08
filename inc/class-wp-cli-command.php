@@ -1,6 +1,6 @@
 <?php
 
-namespace S3_Uploads;
+namespace R2_UPLOADS;
 
 use Aws\Command;
 use Aws\S3\Transfer;
@@ -62,12 +62,12 @@ class WP_CLI_Command extends \WP_CLI_Command {
 
 	private function get_iam_policy() : string {
 
-		$bucket = strtok( S3_UPLOADS_BUCKET, '/' );
+		$bucket = strtok( R2_UPLOADS_BUCKET, '/' );
 
 		$path = null;
 
-		if ( strpos( S3_UPLOADS_BUCKET, '/' ) ) {
-			$path = str_replace( strtok( S3_UPLOADS_BUCKET, '/' ) . '/', '', S3_UPLOADS_BUCKET );
+		if ( strpos( R2_UPLOADS_BUCKET, '/' ) ) {
+			$path = str_replace( strtok( R2_UPLOADS_BUCKET, '/' ) . '/', '', R2_UPLOADS_BUCKET );
 		}
 
 		return '{
@@ -91,7 +91,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
         "s3:PutObjectAcl"
       ],
       "Resource": [
-        "arn:aws:s3:::' . S3_UPLOADS_BUCKET . '/*"
+        "arn:aws:s3:::' . R2_UPLOADS_BUCKET . '/*"
       ]
     },
     {
@@ -133,8 +133,8 @@ class WP_CLI_Command extends \WP_CLI_Command {
 
 		$prefix = '';
 
-		if ( strpos( S3_UPLOADS_BUCKET, '/' ) ) {
-			$prefix = trailingslashit( str_replace( strtok( S3_UPLOADS_BUCKET, '/' ) . '/', '', S3_UPLOADS_BUCKET ) );
+		if ( strpos( R2_UPLOADS_BUCKET, '/' ) ) {
+			$prefix = trailingslashit( str_replace( strtok( R2_UPLOADS_BUCKET, '/' ) . '/', '', R2_UPLOADS_BUCKET ) );
 		}
 
 		if ( isset( $args[0] ) ) {
@@ -144,7 +144,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
 		try {
 			$objects = $s3->getIterator(
 				'ListObjects', [
-					'Bucket' => strtok( S3_UPLOADS_BUCKET, '/' ),
+					'Bucket' => strtok( R2_UPLOADS_BUCKET, '/' ),
 					'Prefix' => $prefix,
 				]
 			);
@@ -209,13 +209,13 @@ class WP_CLI_Command extends \WP_CLI_Command {
 			'debug'       => (bool) $args_assoc['verbose'],
 			'before'      => function ( Command $command ) {
 				if ( in_array( $command->getName(), [ 'PutObject', 'CreateMultipartUpload' ], true ) ) {
-					$acl = defined( 'S3_UPLOADS_OBJECT_ACL' ) ? S3_UPLOADS_OBJECT_ACL : 'public-read';
+					$acl = defined( 'R2_UPLOADS_OBJECT_ACL' ) ? R2_UPLOADS_OBJECT_ACL : 'public-read';
 					$command['ACL'] = $acl;
 				}
 			},
 		];
 		try {
-			$manager = new Transfer( $s3, $from, 's3://' . S3_UPLOADS_BUCKET . '/' . $to, $transfer_args );
+			$manager = new Transfer( $s3, $from, 's3://' . R2_UPLOADS_BUCKET . '/' . $to, $transfer_args );
 			$manager->transfer();
 		} catch ( Exception $e ) {
 			WP_CLI::error( $e->getMessage() );
@@ -237,8 +237,8 @@ class WP_CLI_Command extends \WP_CLI_Command {
 		$prefix = '';
 		$regex = isset( $args_assoc['regex'] ) ? $args_assoc['regex'] : '';
 
-		if ( strpos( S3_UPLOADS_BUCKET, '/' ) ) {
-			$prefix = trailingslashit( str_replace( strtok( S3_UPLOADS_BUCKET, '/' ) . '/', '', S3_UPLOADS_BUCKET ) );
+		if ( strpos( R2_UPLOADS_BUCKET, '/' ) ) {
+			$prefix = trailingslashit( str_replace( strtok( R2_UPLOADS_BUCKET, '/' ) . '/', '', R2_UPLOADS_BUCKET ) );
 		}
 
 		if ( isset( $args[0] ) ) {
@@ -251,7 +251,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
 
 		try {
 			$s3->deleteMatchingObjects(
-				strtok( S3_UPLOADS_BUCKET, '/' ),
+				strtok( R2_UPLOADS_BUCKET, '/' ),
 				$prefix,
 				$regex,
 				[
@@ -273,7 +273,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
 	 * Enable the auto-rewriting of media links to S3
 	 */
 	public function enable() {
-		update_option( 's3_uploads_enabled', 'enabled' );
+		update_option( 'R2_UPLOADS_enabled', 'enabled' );
 
 		WP_CLI::success( 'Media URL rewriting enabled.' );
 	}
@@ -282,7 +282,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
 	 * Disable the auto-rewriting of media links to S3
 	 */
 	public function disable() {
-		delete_option( 's3_uploads_enabled' );
+		delete_option( 'R2_UPLOADS_enabled' );
 
 		WP_CLI::success( 'Media URL rewriting disabled.' );
 	}
@@ -339,12 +339,12 @@ class WP_CLI_Command extends \WP_CLI_Command {
 	 */
 	private function verify_s3_access_constants() {
 		$required_constants = [
-			'S3_UPLOADS_BUCKET',
+			'R2_UPLOADS_BUCKET',
 		];
 
 		// Credentials do not need to be set when using AWS Instance Profiles.
-		if ( ! defined( 'S3_UPLOADS_USE_INSTANCE_PROFILE' ) || ! S3_UPLOADS_USE_INSTANCE_PROFILE ) {
-			array_push( $required_constants, 'S3_UPLOADS_KEY', 'S3_UPLOADS_SECRET' );
+		if ( ! defined( 'R2_UPLOADS_USE_INSTANCE_PROFILE' ) || ! R2_UPLOADS_USE_INSTANCE_PROFILE ) {
+			array_push( $required_constants, 'R2_UPLOADS_KEY', 'R2_UPLOADS_SECRET' );
 		}
 
 		$all_set = true;

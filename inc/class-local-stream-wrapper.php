@@ -1,6 +1,6 @@
 <?php
 
-namespace S3_Uploads;
+namespace R2_UPLOADS;
 
 // phpcs:disable WordPress.NamingConventions.ValidVariableName.MemberNotSnakeCase
 // phpcs:disable WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
@@ -307,8 +307,8 @@ class Local_Stream_Wrapper {
 		$result = fflush( $this->handle );
 
 		$params = [
-			'Bucket' => S3_UPLOADS_BUCKET,
-			'Key' => trim( str_replace( S3_UPLOADS_BUCKET, '', $this->getTarget() ), '/' ),
+			'Bucket' => R2_UPLOADS_BUCKET,
+			'Key' => trim( str_replace( R2_UPLOADS_BUCKET, '', $this->getTarget() ), '/' ),
 		];
 
 		/**
@@ -316,7 +316,7 @@ class Local_Stream_Wrapper {
 		 *
 		 * @param array  $params S3Client::putObject parameters.
 		 */
-		do_action( 's3_uploads_putObject', $params );
+		do_action( 'R2_UPLOADS_putObject', $params );
 
 		return $result;
 	}

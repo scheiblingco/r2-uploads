@@ -1,6 +1,6 @@
 <?php
 
-namespace S3_Uploads;
+namespace R2_UPLOADS;
 
 function init() {
 	// Ensure the AWS SDK can be loaded.
@@ -13,11 +13,11 @@ function init() {
 		return;
 	}
 
-	if ( ! defined( 'S3_UPLOADS_BUCKET' ) ) {
+	if ( ! defined( 'R2_UPLOADS_BUCKET' ) ) {
 		return;
 	}
 
-	if ( ( ! defined( 'S3_UPLOADS_KEY' ) || ! defined( 'S3_UPLOADS_SECRET' ) ) && ! defined( 'S3_UPLOADS_USE_INSTANCE_PROFILE' ) ) {
+	if ( ( ! defined( 'R2_UPLOADS_KEY' ) || ! defined( 'R2_UPLOADS_SECRET' ) ) && ! defined( 'R2_UPLOADS_USE_INSTANCE_PROFILE' ) ) {
 		return;
 	}
 
@@ -25,8 +25,8 @@ function init() {
 		return;
 	}
 
-	if ( ! defined( 'S3_UPLOADS_REGION' ) ) {
-		wp_die( 'S3_UPLOADS_REGION constant is required. Please define it in your wp-config.php' );
+	if ( ! defined( 'R2_UPLOADS_ACCOUNT_ID' ) ) {
+		wp_die( 'R2_UPLOADS_ACCOUNT_ID constant is required. Please define it in your wp-config.php' );
 	}
 
 	$instance = Plugin::get_instance();
@@ -97,16 +97,16 @@ function outdated_wp_version_notice() {
 /**
  * Check if URL rewriting is enabled.
  *
- * Define S3_UPLOADS_AUTOENABLE to false in your wp-config to disable, or use the
- * s3_uploads_enabled option.
+ * Define R2_UPLOADS_AUTOENABLE to false in your wp-config to disable, or use the
+ * R2_UPLOADS_enabled option.
  *
  * @return bool
  */
 function enabled() : bool {
 	// Make sure the plugin is enabled when autoenable is on
-	$constant_autoenable_off = ( defined( 'S3_UPLOADS_AUTOENABLE' ) && false === S3_UPLOADS_AUTOENABLE );
+	$constant_autoenable_off = ( defined( 'R2_UPLOADS_AUTOENABLE' ) && false === R2_UPLOADS_AUTOENABLE );
 
-	if ( $constant_autoenable_off && 'enabled' !== get_option( 's3_uploads_enabled' ) ) { // If the plugin is not enabled, skip
+	if ( $constant_autoenable_off && 'enabled' !== get_option( 'R2_UPLOADS_enabled' ) ) { // If the plugin is not enabled, skip
 		return false;
 	}
 

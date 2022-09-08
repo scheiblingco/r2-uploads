@@ -1,6 +1,6 @@
 <?php
 
-namespace S3_Uploads;
+namespace R2_UPLOADS;
 
 use Aws;
 use Exception;
@@ -49,7 +49,7 @@ class Plugin {
 	/**
 	 * @var ?string
 	 */
-	private $region = null;
+	private $accountid = null;
 
 	/**
 	 * @var ?Aws\S3\S3Client
@@ -69,11 +69,11 @@ class Plugin {
 
 		if ( ! self::$instance ) {
 			self::$instance = new static(
-				S3_UPLOADS_BUCKET,
-				defined( 'S3_UPLOADS_KEY' ) ? S3_UPLOADS_KEY : null,
-				defined( 'S3_UPLOADS_SECRET' ) ? S3_UPLOADS_SECRET : null,
-				defined( 'S3_UPLOADS_BUCKET_URL' ) ? S3_UPLOADS_BUCKET_URL : null,
-				S3_UPLOADS_REGION
+				R2_UPLOADS_BUCKET,
+				defined( 'R2_UPLOADS_KEY' ) ? R2_UPLOADS_KEY : null,
+				defined( 'R2_UPLOADS_SECRET' ) ? R2_UPLOADS_SECRET : null,
+				defined( 'R2_UPLOADS_BUCKET_URL' ) ? R2_UPLOADS_BUCKET_URL : null,
+				R2_UPLOADS_ACCOUNT_ID
 			);
 		}
 
@@ -87,14 +87,14 @@ class Plugin {
 	 * @param ?string $key
 	 * @param ?string $secret
 	 * @param ?string $bucket_url
-	 * @param ?string $region
+	 * @param ?string $accountid
 	 */
-	public function __construct( $bucket, $key, $secret, $bucket_url = null, $region = null ) {
+	public function __construct( $bucket, $key, $secret, $bucket_url = null, $accountid = null ) {
 		$this->bucket     = $bucket;
 		$this->key        = $key;
 		$this->secret     = $secret;
 		$this->bucket_url = $bucket_url;
-		$this->region     = $region;
+		$this->accountid     = $accountid;
 	}
 
 	/**
@@ -143,11 +143,11 @@ class Plugin {
 	 * Register the stream wrapper for s3
 	 */
 	public function register_stream_wrapper() {
-		if ( defined( 'S3_UPLOADS_USE_LOCAL' ) && S3_UPLOADS_USE_LOCAL ) {
-			stream_wrapper_register( 's3', 'S3_Uploads\Local_Stream_Wrapper', STREAM_IS_URL );
+		if ( defined( 'R2_UPLOADS_USE_LOCAL' ) && R2_UPLOADS_USE_LOCAL ) {
+			stream_wrapper_register( 's3', 'R2_UPLOADS\Local_Stream_Wrapper', STREAM_IS_URL );
 		} else {
 			Stream_Wrapper::register( $this );
-			$acl = defined( 'S3_UPLOADS_OBJECT_ACL' ) ? S3_UPLOADS_OBJECT_ACL : 'public-read';
+			$acl = defined( 'R2_UPLOADS_OBJECT_ACL' ) ? R2_UPLOADS_OBJECT_ACL : 'public-read';
 			stream_context_set_option( stream_context_get_default(), 's3', 'ACL', $acl );
 		}
 
@@ -175,9 +175,9 @@ class Plugin {
 		$dirs['path']    = str_replace( WP_CONTENT_DIR, $s3_path, $dirs['path'] );
 		$dirs['basedir'] = str_replace( WP_CONTENT_DIR, $s3_path, $dirs['basedir'] );
 
-		if ( ! defined( 'S3_UPLOADS_DISABLE_REPLACE_UPLOAD_URL' ) || ! S3_UPLOADS_DISABLE_REPLACE_UPLOAD_URL ) {
+		if ( ! defined( 'R2_UPLOADS_DISABLE_REPLACE_UPLOAD_URL' ) || ! R2_UPLOADS_DISABLE_REPLACE_UPLOAD_URL ) {
 
-			if ( defined( 'S3_UPLOADS_USE_LOCAL' ) && S3_UPLOADS_USE_LOCAL ) {
+			if ( defined( 'R2_UPLOADS_USE_LOCAL' ) && R2_UPLOADS_USE_LOCAL ) {
 				$dirs['url']     = str_replace( $s3_path, $dirs['baseurl'] . '/s3/' . $this->bucket, $dirs['path'] );
 				$dirs['baseurl'] = str_replace( $s3_path, $dirs['baseurl'] . '/s3/' . $this->bucket, $dirs['basedir'] );
 
@@ -232,7 +232,7 @@ class Plugin {
 		$bucket = strtok( $this->bucket, '/' );
 		$path   = substr( $this->bucket, strlen( $bucket ) );
 
-		return apply_filters( 's3_uploads_bucket_url', 'https://' . $bucket . '.s3.amazonaws.com' . $path );
+		return apply_filters( 'R2_UPLOADS_bucket_url', 'https://' . $this->accountid . '.r2.cloudflarestorage.com' . $bucket );
 	}
 
 	/**
@@ -250,7 +250,7 @@ class Plugin {
 	 * @return string
 	 */
 	public function get_s3_bucket_region() : ?string {
-		return $this->region;
+		return $this->accountid;
 	}
 
 	/**
@@ -278,7 +278,7 @@ class Plugin {
 	 * @return array{bucket: string, key: string, query: string|null}|null
 	 */
 	public function get_s3_location_for_url( string $url ) : ?array {
-		$s3_url = 'https://' . $this->get_s3_bucket() . '.s3.amazonaws.com/';
+		$s3_url = 'https://' . $this->accountid . '.r2.cloudflarestorage.com/';
 		if ( strpos( $url, $s3_url ) === 0 ) {
 			$parsed = wp_parse_url( $url );
 			return [
@@ -342,7 +342,7 @@ class Plugin {
 	 */
 	public function get_aws_sdk() : Aws\Sdk {
 		/** @var null|Aws\Sdk */
-		$sdk = apply_filters( 's3_uploads_aws_sdk', null, $this );
+		$sdk = apply_filters( 'R2_UPLOADS_aws_sdk', null, $this );
 		if ( $sdk ) {
 			return $sdk;
 		}
@@ -354,9 +354,9 @@ class Plugin {
 			$params['credentials']['secret'] = $this->secret;
 		}
 
-		if ( $this->region ) {
+		if ( $this->accountid ) {
 			$params['signature'] = 'v4';
-			$params['region'] = $this->region;
+			$params['region'] = $this->accountid;
 		}
 
 		if ( defined( 'WP_PROXY_HOST' ) && defined( 'WP_PROXY_PORT' ) ) {
@@ -370,7 +370,7 @@ class Plugin {
 			$params['request.options']['proxy'] = $proxy_auth . $proxy_address;
 		}
 
-		$params = apply_filters( 's3_uploads_s3_client_params', $params );
+		$params = apply_filters( 'R2_UPLOADS_s3_client_params', $params );
 
 		$sdk = new Aws\Sdk( $params );
 		return $sdk;
@@ -460,8 +460,8 @@ class Plugin {
 	 */
 	function wp_filter_resource_hints( array $hints, string $relation_type ) : array {
 		if (
-			( defined( 'S3_UPLOADS_DISABLE_REPLACE_UPLOAD_URL' ) && S3_UPLOADS_DISABLE_REPLACE_UPLOAD_URL ) ||
-			( defined( 'S3_UPLOADS_USE_LOCAL' ) && S3_UPLOADS_USE_LOCAL )
+			( defined( 'R2_UPLOADS_DISABLE_REPLACE_UPLOAD_URL' ) && R2_UPLOADS_DISABLE_REPLACE_UPLOAD_URL ) ||
+			( defined( 'R2_UPLOADS_USE_LOCAL' ) && R2_UPLOADS_USE_LOCAL )
 		) {
 			return $hints;
 		}
@@ -501,7 +501,7 @@ class Plugin {
 		 * @param bool Whether the attachment is private.
 		 * @param int  The attachment ID.
 		 */
-		$private = apply_filters( 's3_uploads_is_attachment_private', false, $attachment_id );
+		$private = apply_filters( 'R2_UPLOADS_is_attachment_private', false, $attachment_id );
 		return $private;
 	}
 
@@ -571,7 +571,7 @@ class Plugin {
 			}
 		}
 
-		$files = apply_filters( 's3_uploads_get_attachment_files', $files, $attachment_id );
+		$files = apply_filters( 'R2_UPLOADS_get_attachment_files', $files, $attachment_id );
 
 		return $files;
 	}
@@ -602,14 +602,14 @@ class Plugin {
 			]
 		);
 
-		$presigned_url_expires = apply_filters( 's3_uploads_private_attachment_url_expiry', '+6 hours', $post_id );
+		$presigned_url_expires = apply_filters( 'R2_UPLOADS_private_attachment_url_expiry', '+6 hours', $post_id );
 		$query = $this->s3()->createPresignedRequest( $cmd, $presigned_url_expires )->getUri()->getQuery();
 
 		// The URL could have query params on it already (such as being an already signed URL),
 		// but query params will mean the S3 signed URL will become corrupt. So, we have to
 		// remove all query params.
 		$url = strtok( $url, '?' ) . '?' . $query;
-		$url = apply_filters( 's3_uploads_presigned_url', $url, $post_id );
+		$url = apply_filters( 'R2_UPLOADS_presigned_url', $url, $post_id );
 
 		return $url;
 	}

@@ -1,6 +1,6 @@
 <?php
 
-namespace S3_Uploads;
+namespace R2_UPLOADS;
 
 use Aws\CacheInterface;
 use Aws\LruArrayCache;
@@ -186,7 +186,7 @@ class Stream_Wrapper {
 						try {
 							$p = $this->params;
 							$p['Body'] = '';
-							$p = apply_filters( 's3_uploads_putObject_params', $p );
+							$p = apply_filters( 'R2_UPLOADS_putObject_params', $p );
 							$this->getClient()->putObject( $p );
 						} catch ( Exception $e ) {
 							return $this->triggerError( $e->getMessage() );
@@ -227,18 +227,18 @@ class Stream_Wrapper {
 		}
 
 		/// Expires:
-		if ( defined( 'S3_UPLOADS_HTTP_EXPIRES' ) ) {
-			$params['Expires'] = S3_UPLOADS_HTTP_EXPIRES;
+		if ( defined( 'R2_UPLOADS_HTTP_EXPIRES' ) ) {
+			$params['Expires'] = R2_UPLOADS_HTTP_EXPIRES;
 		}
 		// Cache-Control:
-		if ( defined( 'S3_UPLOADS_HTTP_CACHE_CONTROL' ) ) {
+		if ( defined( 'R2_UPLOADS_HTTP_CACHE_CONTROL' ) ) {
 			/**
 			 * @psalm-suppress RedundantCondition
 			 */
-			if ( is_numeric( S3_UPLOADS_HTTP_CACHE_CONTROL ) ) {
-				$params['CacheControl'] = 'max-age=' . S3_UPLOADS_HTTP_CACHE_CONTROL;
+			if ( is_numeric( R2_UPLOADS_HTTP_CACHE_CONTROL ) ) {
+				$params['CacheControl'] = 'max-age=' . R2_UPLOADS_HTTP_CACHE_CONTROL;
 			} else {
-				$params['CacheControl'] = S3_UPLOADS_HTTP_CACHE_CONTROL;
+				$params['CacheControl'] = R2_UPLOADS_HTTP_CACHE_CONTROL;
 			}
 		}
 
@@ -249,7 +249,7 @@ class Stream_Wrapper {
 		 *
 		 * @param array $params S3Client::putObject parameters.
 		 */
-		$params = apply_filters( 's3_uploads_putObject_params', $params );
+		$params = apply_filters( 'R2_UPLOADS_putObject_params', $params );
 
 		$this->clearCacheKey( "s3://{$params['Bucket']}/{$params['Key']}" );
 		return $this->boolCall(
@@ -261,7 +261,7 @@ class Stream_Wrapper {
 				 *
 				 * @param array  $params S3Client::putObject parameters.
 				 */
-				do_action( 's3_uploads_putObject', $params );
+				do_action( 'R2_UPLOADS_putObject', $params );
 
 				return $bool;
 			}
